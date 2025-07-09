@@ -1,5 +1,4 @@
 import qrcode
-
 import requests
 
 def check_url_exists(url):
@@ -11,7 +10,6 @@ def check_url_exists(url):
         print(f"{url} status: {response.status_code}")
         return response.status_code < 400
     except requests.RequestException:
-        print(url + " not found")
         return False
         
 def find_working_url(base_name):
@@ -39,11 +37,24 @@ source = input("Enter website name or URL: ")
 website_link = find_working_url(source)
 print(f"Website link found: {website_link}")
 if website_link:
+    import os
     qr = qrcode.QRCode(version=1, box_size=5, border=5)
     qr.add_data(website_link)
     qr.make()
     img = qr.make_image(fill_color='black', back_color='white')
-    img.save(f"{source}.png")
-    print(f"QR code saved as {source}.png")
+    # Sanitize filename
+    base_name = source
+    if check_url_exists(source):
+        base_name = source.split('.')[1]
+    base_name = base_name.strip()
+    if not base_name:
+        base_name = 'qr_code'
+    filename = f"{base_name}.png"
+    counter = 1
+    while os.path.exists(filename):
+        filename = f"{base_name}({counter}).png"
+        counter += 1
+    img.save(filename)
+    print(f"QR code saved as {filename}")
 else:
     print("No valid website link found. QR code not generated.")
